@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RegPilot — EU Expansion Compliance Check</title>
+  <meta name="description" content="Instant, automated compliance checklist for EU cross-border expansion (VAT, labor, registration, data, sector permits)." />
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.52);
+      --brand: #7c5cff;
+      --brand2: #2fe1ff;
+      --ok: #37d67a;
+      --warn: #ffcc66;
+      --bad: #ff5c7a;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 14px;
+      --max: 1100px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 10% 10%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(900px 500px at 90% 0%, rgba(47,225,255,.18), transparent 55%),
+        radial-gradient(900px 700px at 80% 90%, rgba(55,214,122,.10), transparent 60%),
+        linear-gradient(180deg, #070a14 0%, #0b1020 40%, #080b16 100%);
+      overflow-x:hidden;
+    }
+    a{ color:inherit; text-decoration:none; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 28px 18px 56px; }
+
+    /* Top bar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; padding: 12px 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      position: sticky; top: 14px; z-index: 40;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; min-width: 200px;
+      font-weight: 700; letter-spacing:.2px;
+    }
+    .logo{
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: 0 12px 28px rgba(124,92,255,.25);
+      position: relative;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset: 9px 8px 10px 10px;
+      border: 2px solid rgba(255,255,255,.75);
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 8px;
+      transform: rotate(12deg);
+      opacity:.9;
+    }
+
+    .nav{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: .15s ease;
+      user-select:none;
+    }
+    .pill:hover{ background: rgba(255,255,255,.08); color: var(--text); }
+    .pill.active{
+      background: linear-gradient(135deg, rgba(124,92,255,.35), rgba(47,225,255,.18));
+      border-color: rgba(124,92,255,.55);
+      color: var(--text);
+    }
+
+    /* Hero */
+    .hero{
+      padding: 42px 10px 10px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px){
+      .hero{ grid-template-columns: 1fr; }
+      .brand{ min-width: unset; }
+    }
+    .card{
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .heroMain{
+      padding: 26px 22px;
+      position: relative;
+      overflow:hidden;
+    }
+    .heroMain:before{
+      content:"";
+      position:absolute;
+      width: 520px; height: 520px;
+      right:-280px; top:-260px;
+      background: radial-gradient(circle at 30% 30%, rgba(47,225,255,.25), transparent 60%),
+                  radial-gradient(circle at 60% 60%, rgba(124,92,255,.28), transparent 60%);
+      filter: blur(0px);
+      opacity: .9;
+    }
+    .heroMain > *{ position: relative; z-index: 1; }
+
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .dot{
+      width: 9px; height: 9px; border-radius: 99px;
+      background: var(--ok);
+      box-shadow: 0 0 0 6px rgba(55,214,122,.12);
+    }
+    h1{
+      margin: 14px 0 10px;
+      font-size: clamp(28px, 3.2vw, 44px);
+      line-height: 1.08;
+      letter-spacing: -0.6px;
+    }
+    .sub{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 62ch;
+    }
+    .ctaRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+      font-size: 14px;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
+    .btn.primary{
+      border-color: rgba(124,92,255,.65);
+      background: linear-gradient(135deg, rgba(124,92,255,.85), rgba(47,225,255,.45));
+      box-shadow: 0 14px 40px rgba(124,92,255,.25);
+    }
+    .btn.primary:hover{ filter: brightness(1.03); }
+    .btn.ghost{ color: var(--muted); }
+    .smallNote{ color: var(--muted2); font-size: 13px; margin-top: 10px; }
+
+    /* Side card */
+    .heroSide{ padding: 18px; display:flex; flex-direction:column; gap:12px; }
+    .miniTitle{ font-weight: 700; margin: 0; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+    .statGrid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .stat{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 82px;
+    }
+    .stat b{ display:block; font-size: 18px; margin-bottom: 4px; }
+    .stat span{ color: var(--muted); font-size: 13px; }
+    .bullets{ margin: 0; padding-left: 16px; color: var(--muted); font-size: 14px; }
+    .bullets li{ margin: 6px 0; }
+
+    /* Pages */
+    .page{ display:none; margin-top: 18px; }
+    .page.active{ display:block; }
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px){ .grid2{ grid-template-columns: 1fr; } }
+
+    .sectionCard{ padding: 18px; }
+    .sectionCard h2{ margin: 6px 0 8px; font-size: 20px; letter-spacing:-.2px; }
+    .sectionCard p{ margin: 0 0 12px; color: var(--muted); }
+    .divider{ height: 1px; background: var(--stroke); margin: 14px 0; }
+
+    /* Form */
+    form{ display:flex; flex-direction:column; gap: 12px; }
+    label{ font-size: 13px; color: var(--muted); }
+    .field{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 12px;
+      display:flex; flex-direction:column; gap: 8px;
+    }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px){ .row{ grid-template-columns: 1fr; } }
+    select, input{
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    select:focus, input:focus{ border-color: rgba(47,225,255,.55); box-shadow: 0 0 0 4px rgba(47,225,255,.12); }
+
+    .hint{
+      color: var(--muted2);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .error{
+      display:none;
+      border: 1px solid rgba(255,92,122,.45);
+      background: rgba(255,92,122,.10);
+      color: rgba(255,255,255,.86);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+    .error.show{ display:block; }
+
+    /* Results */
+    .resultHeader{
+      display:flex; align-items:flex-start; justify-content:space-between; gap: 14px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--stroke);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .badge strong{ color: var(--text); }
+    .checklist{
+      list-style:none; padding:0; margin: 10px 0 0;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .item{
+      display:flex; gap:12px; align-items:flex-start;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+    }
+    .icon{
+      width: 28px; height: 28px; border-radius: 10px;
+      display:grid; place-items:center;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.25);
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+    .item h3{ margin: 0 0 2px; font-size: 14px; letter-spacing: -.1px; }
+    .item p{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .pillTiny{
+      display:inline-flex; align-items:center;
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--stroke);
+      color: var(--muted2);
+      background: rgba(255,255,255,.04);
+    }
+    .metaRow{
+      display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px;
+    }
+
+    footer{
+      margin-top: 34px;
+      color: var(--muted2);
+      font-size: 13px;
+      text-align:center;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.8);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand" aria-label="RegPilot">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size:14px; line-height:1;">RegPilot</div>
+          <div style="font-size:12px; color:var(--muted2); margin-top:2px;">EU expansion compliance</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navigation">
+        <div class="pill active" id="nav-landing" role="button" tabindex="0" data-go="landing">Overview</div>
+        <div class="pill" id="nav-check" role="button" tabindex="0" data-go="check">Compliance check</div>
+        <div class="pill" id="nav-results" role="button" tabindex="0" data-go="results">Results</div>
+      </nav>
+    </header>
+
+    <!-- HERO (always visible as a top-of-funnel landing experience) -->
+    <section class="hero">
+      <div class="card heroMain">
+        <div class="tag"><span class="dot" aria-hidden="true"></span> Designed for small EU businesses expanding cross‑border</div>
+        <h1>Automate the first 80% of EU expansion compliance checks.</h1>
+        <p class="sub">
+          RegPilot generates a tailored, actionable checklist for the target country—covering VAT, workforce rules,
+          registration and common documentation—so you can ship faster and avoid painful surprises.
+        </p>
+        <div class="ctaRow">
+          <button class="btn primary" id="ctaStart">Run a free check</button>
+          <button class="btn ghost" id="ctaDemo">See how it works</button>
+        </div>
+        <div class="smallNote">
+          Prototype for the <b>University Startup Challenge 2026</b> (theme: <i>Europe 2036</i>). Not legal advice.
+        </div>
+      </div>
+
+      <aside class="card heroSide">
+        <p class="miniTitle">What you get</p>
+        <div class="statGrid">
+          <div class="stat"><b>Checklist</b><span>Key steps & docs</span></div>
+          <div class="stat"><b>Fast</b><span>Seconds, not weeks</span></div>
+          <div class="stat"><b>B2B</b><span>Ops & finance teams</span></div>
+          <div class="stat"><b>EU‑first</b><span>Cross‑border by design</span></div>
+        </div>
+        <div class="divider"></div>
+        <ul class="bullets">
+          <li>VAT & invoicing flags (OSS, registration triggers)</li>
+          <li>Labor posting reminders & employer obligations</li>
+          <li>Business registration & local representation</li>
+          <li>GDPR + sector permits quick scan</li>
+        </ul>
+      </aside>
+    </section>
+
+    <!-- PAGES -->
+    <section class="page active" id="page-landing">
+      <div class="grid2">
+        <div class="card sectionCard">
+          <h2>Why this exists</h2>
+          <p>
+            In Europe, expansion is often slowed down by fragmented rules, forms, and country-specific requirements.
+            Small teams can’t afford expensive consultancies for every “maybe we should enter that market”.
+          </p>
+          <div class="divider"></div>
+          <p class="hint">
+            RegPilot is a <b>pre‑flight compliance layer</b>: you pick a home country and target country, and we return a
+            pragmatic checklist to align Finance, Legal, HR, and Operations—before you sign customers.
+          </p>
+        </div>
+
+        <div class="card sectionCard">
+          <h2>Who it’s for</h2>
+          <p style="margin-bottom:10px;">
+            Best fit: service providers, e‑commerce, SaaS, installers, agencies—any SMB expanding into another EU country.
+          </p>
+          <div class="divider"></div>
+          <p class="hint"><b>Typical users</b></p>
+          <div class="metaRow">
+            <span class="pillTiny">COO / Ops</span>
+            <span class="pillTiny">CFO / Finance</span>
+            <span class="pillTiny">HR</span>
+            <span class="pillTiny">Founder</span>
+            <span class="pillTiny">Legal (lightweight)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-check">
+      <div class="card sectionCard">
+        <div class="resultHeader">
+          <div>
+            <h2>Run a compliance check</h2>
+            <p>Enter your home country and where you want to expand. We’ll generate a checklist you can act on.</p>
+          </div>
+          <div class="badge" title="Prototype scope">
+            Mode: <strong>Minimal prototype</strong>
+          </div>
+        </div>
+
+        <div class="error" id="formError"></div>
+
+        <form id="complianceForm">
+          <div class="row">
+            <div class="field">
+              <label for="homeCountry">Home country</label>
+              <select id="homeCountry" required>
+                <option value="">Select…</option>
+              </select>
+              <div class="hint">Where your company is established today.</div>
+            </div>
+
+            <div class="field">
+              <label for="targetCountry">Target expansion country</label>
+              <select id="targetCountry" required>
+                <option value="">Select…</option>
+              </select>
+              <div class="hint">Where you want to hire, sell, or operate next.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="activity">Primary activity (optional)</label>
+              <select id="activity">
+                <option value="">Select…</option>
+                <option value="saas">SaaS / Digital services</option>
+                <option value="ecommerce">E‑commerce / physical goods</option>
+                <option value="services">On‑site services (installations, consulting)</option>
+                <option value="hiring">Hiring employees locally</option>
+              </select>
+              <div class="hint">Used to tailor the checklist. Keep it simple for now.</div>
+            </div>
+
+            <div class="field">
+              <label for="timeline">Timeline (optional)</label>
+              <select id="timeline">
+                <option value="">Select…</option>
+                <option value="30">Next 30 days</option>
+                <option value="90">Next 90 days</option>
+                <option value="180">Next 6 months</option>
+              </select>
+              <div class="hint">We’ll mark which items to prioritize first.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary" type="submit">Generate checklist</button>
+            <button class="btn" type="button" id="fillExample">Fill example</button>
+          </div>
+
+          <div class="hint">
+            Tip: Use <span class="kbd">Overview</span> → <span class="kbd">Compliance check</span> to pitch the product, then show the results as the “aha”.
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="page" id="page-results">
+      <div class="card sectionCard">
+        <div class="resultHeader">
+          <div>
+            <h2>Your checklist</h2>
+            <p id="resultsSubtitle" style="margin-bottom:0;">Run a check to generate items.</p>
+          </div>
+          <div class="badge" id="resultsBadge">No run yet</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <ul class="checklist" id="checklist"></ul>
+
+        <div class="divider"></div>
+
+        <div class="hint">
+          <b>Prototype note:</b> This checklist is a structured “starting point” and intentionally conservative.
+          In a real product, items would be jurisdiction- and activity-specific, linked to sources, and tracked as tasks.
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="backToForm">Edit inputs</button>
+          <button class="btn primary" id="restart">New check</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © 2026 RegPilot (prototype) — Built for a student startup challenge. Not legal advice.
+    </footer>
+  </div>
+
+  <script>
+    // -----------------------
+    // Minimal SPA navigation
+    // -----------------------
+    const pages = {
+      landing: document.getElementById('page-landing'),
+      check: document.getElementById('page-check'),
+      results: document.getElementById('page-results'),
+    };
+
+    const navPills = {
+      landing: document.getElementById('nav-landing'),
+      check: document.getElementById('nav-check'),
+      results: document.getElementById('nav-results'),
+    };
+
+    function go(pageKey){
+      Object.entries(pages).forEach(([k, el]) => el.classList.toggle('active', k === pageKey));
+      Object.entries(navPills).forEach(([k, el]) => el.classList.toggle('active', k === pageKey));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('[data-go]').forEach(el => {
+      el.addEventListener('click', () => go(el.getAttribute('data-go')));
+      el.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(el.getAttribute('data-go')); }
+      });
+    });
+
+    document.getElementById('ctaStart').addEventListener('click', () => go('check'));
+    document.getElementById('ctaDemo').addEventListener('click', () => go('landing'));
+
+    // -----------------------
+    // Data (minimal prototype)
+    // -----------------------
+    const EU_COUNTRIES = [
+      "Austria","Belgium","Bulgaria","Croatia","Cyprus","Czechia","Denmark","Estonia","Finland",
+      "France","Germany","Greece","Hungary","Ireland","Italy","Latvia","Lithuania","Luxembourg",
+      "Malta","Netherlands","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Sweden"
+    ];
+
+    // Some countries use different invoice / e-invoicing and reporting patterns;
+    // This is not exhaustive—just enough to make the prototype feel real.
+    const COUNTRY_HINTS = {
+      "Italy": ["E‑invoicing is common/required in many contexts (e.g., SDI)."],
+      "France": ["E‑invoicing rollout is progressing; plan for structured e‑invoices and reporting."],
+      "Germany": ["B2B e‑invoicing adoption is increasing; check formats and archiving requirements."],
+      "Spain": ["Immediate Supply of Information (SII) may apply for VAT reporting in some cases."],
+      "Netherlands": ["Consider local VAT reporting cadence and invoicing/archiving conventions."]
+    };
+
+    function populateSelect(selectEl){
+      EU_COUNTRIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    populateSelect(document.getElementById('homeCountry'));
+    populateSelect(document.getElementById('targetCountry'));
+
+    // -----------------------
+    // Checklist generator
+    // -----------------------
+    const checklistEl = document.getElementById('checklist');
+    const resultsSubtitle = document.getElementById('resultsSubtitle');
+    const resultsBadge = document.getElementById('resultsBadge');
+
+    function iconFor(kind){
+      // simple glyphs to keep single-file light
+      const map = { vat: "€", labor: "👥", reg: "🏛", data: "🔒", sector: "🧩", docs: "🗂", ops: "⚙" };
+      return map[kind] || "•";
+    }
+
+    function priorityPill(timeline){
+      if(!timeline) return null;
+      const map = {
+        "30": { label: "Priority: next 30 days", color: "rgba(255,204,102,.14)", border:"rgba(255,204,102,.35)" },
+        "90": { label: "Priority: next 90 days", color: "rgba(47,225,255,.12)", border:"rgba(47,225,255,.30)" },
+        "180": { label: "Priority: next 6 months", color: "rgba(55,214,122,.10)", border:"rgba(55,214,122,.28)" }
+      };
+      return map[timeline] || null;
+    }
+
+    function makeItem({kind, title, desc, note, priority}){
+      const li = document.createElement('li');
+      li.className = 'item';
+
+      const ic = document.createElement('div');
+      ic.className = 'icon';
+      ic.textContent = iconFor(kind);
+
+      const body = document.createElement('div');
+
+      const h = document.createElement('h3');
+      h.textContent = title;
+
+      const p = document.createElement('p');
+      p.textContent = desc;
+
+      body.appendChild(h);
+      body.appendChild(p);
+
+      if(note){
+        const n = document.createElement('div');
+        n.className = 'pillTiny';
+        n.textContent = note;
+        body.appendChild(n);
+      }
+
+      if(priority){
+        const pri = document.createElement('div');
+        pri.className = 'pillTiny';
+        pri.textContent = priority.label;
+        pri.style.background = priority.color;
+        pri.style.borderColor = priority.border;
+        pri.style.color = "rgba(255,255,255,.82)";
+        pri.style.marginLeft = "8px";
+        pri.style.display = "inline-flex";
+        pri.style.marginTop = "8px";
+        body.appendChild(pri);
+      }
+
+      li.appendChild(ic);
+      li.appendChild(body);
+      return li;
+    }
+
+    function generateChecklist(home, target, activity, timeline){
+      const pri = priorityPill(timeline);
+
+      const base = [
+        {
+          kind: "vat",
+          title: "Assess VAT registration triggers",
+          desc: "Check whether selling goods/services into the target country creates a VAT registration obligation (B2C thresholds, local stock, local services, etc.).",
+          note: "Finance"
+        },
+        {
+          kind: "vat",
+          title: "Decide whether OSS / local VAT returns apply",
+          desc: "If selling cross‑border B2C in the EU, evaluate One‑Stop Shop (OSS) vs local registration based on your operating model.",
+          note: "Finance"
+        },
+        {
+          kind: "docs",
+          title: "Prepare compliant invoicing & records",
+          desc: "Ensure invoices contain required fields, are archived correctly, and your billing system supports local requirements (language, VAT IDs, retention).",
+          note: "Finance / Ops"
+        },
+        {
+          kind: "labor",
+          title: "Check labor & posting-of-workers obligations",
+          desc: "If staff will work in the target country, confirm registration/notification rules, payslips, minimum wage, working time, and subcontractor obligations.",
+          note: "HR / Ops"
+        },
+        {
+          kind: "reg",
+          title: "Confirm business establishment / registration steps",
+          desc: "Decide whether you need a branch/subsidiary, local representative, or registrations for regular activity (not just remote sales).",
+          note: "Legal / Ops"
+        },
+        {
+          kind: "data",
+          title: "GDPR readiness for cross-border operations",
+          desc: "Map data flows, update records of processing, set DPAs with vendors, and confirm lawful bases and retention for the new market.",
+          note: "Security / Legal"
+        },
+        {
+          kind: "sector",
+          title: "Validate sector-specific permits & compliance",
+          desc: "Some industries require licenses, notifications, or compliance schemes (e.g., packaging, environmental, regulated professions).",
+          note: "Legal"
+        }
+      ];
+
+      // Tailoring based on activity
+      const tailored = [];
+      if(activity === "saas"){
+        tailored.push({
+          kind: "ops",
+          title: "Classify your digital service for VAT rules",
+          desc: "Confirm whether your product qualifies as electronically supplied services and how customer location evidence is collected.",
+          note: "SaaS / Digital"
+        });
+      }
+      if(activity === "ecommerce"){
+        tailored.push({
+          kind: "ops",
+          title: "Set up customs/returns and consumer-law basics (EU)",
+          desc: "Even inside the EU, ensure you handle returns, warranties, and local consumer information requirements consistently.",
+          note: "E‑commerce"
+        });
+      }
+      if(activity === "services"){
+        tailored.push({
+          kind: "labor",
+          title: "On-site services: check local registrations and site access rules",
+          desc: "Some markets require notifications, safety cards, or documentation before technicians can access sites.",
+          note: "On‑site operations"
+        });
+      }
+      if(activity === "hiring"){
+        tailored.push({
+          kind: "labor",
+          title: "Local hiring: employer setup (payroll, social security, policies)",
+          desc: "If employing locally, confirm payroll provider setup, social contributions, mandatory policies, and employee documentation.",
+          note: "HR"
+        });
+      }
+
+      // Country hints
+      const hints = [];
+      (COUNTRY_HINTS[target] || []).forEach(h => hints.push({
+        kind: "docs",
+        title: "Country hint: invoicing/reporting nuance",
+        desc: h,
+        note: target
+      }));
+
+      // Combine, add priority tag to top items if timeline provided
+      const all = [...tailored, ...base, ...hints].map((x, idx) => ({
+        ...x,
+        priority: (pri && idx < 3) ? pri : null
+      }));
+
+      return all;
+    }
+
+    function renderChecklist(items){
+      checklistEl.innerHTML = "";
+      items.forEach(item => checklistEl.appendChild(makeItem(item)));
+    }
+
+    // -----------------------
+    // Form behavior
+    // -----------------------
+    const form = document.getElementById('complianceForm');
+    const err = document.getElementById('formError');
+
+    function showError(msg){
+      err.textContent = msg;
+      err.classList.add('show');
+    }
+    function clearError(){
+      err.textContent = "";
+      err.classList.remove('show');
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearError();
+
+      const home = document.getElementById('homeCountry').value;
+      const target = document.getElementById('targetCountry').value;
+      const activity = document.getElementById('activity').value;
+      const timeline = document.getElementById('timeline').value;
+
+      if(!home || !target){
+        showError("Please select both a home country and a target country.");
+        return;
+      }
+      if(home === target){
+        showError("Home and target country are the same. Pick a different target country for a cross-border checklist.");
+        return;
+      }
+
+      const items = generateChecklist(home, target, activity, timeline);
+      renderChecklist(items);
+
+      resultsSubtitle.textContent = `Checklist for expanding from ${home} → ${target}.`;
+      resultsBadge.textContent = `Generated • ${new Date().toLocaleString()}`;
+
+      go('results');
+    });
+
+    document.getElementById('fillExample').addEventListener('click', () => {
+      document.getElementById('homeCountry').value = "Italy";
+      document.getElementById('targetCountry').value = "Germany";
+      document.getElementById('activity').value = "saas";
+      document.getElementById('timeline').value = "90";
+      clearError();
+    });
+
+    document.getElementById('backToForm').addEventListener*
