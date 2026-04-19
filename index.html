@@ -225,6 +225,9 @@
   </footer>
 
   <script>
+    const STAGGER_DELAY_MS = 40;
+    const MAX_DELAY_MS = 260;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -238,7 +241,7 @@
     );
 
     document.querySelectorAll('.reveal').forEach((el, i) => {
-      el.style.transitionDelay = `${Math.min(i * 40, 260)}ms`;
+      el.style.transitionDelay = `${Math.min(i * STAGGER_DELAY_MS, MAX_DELAY_MS)}ms`;
       observer.observe(el);
     });
 
