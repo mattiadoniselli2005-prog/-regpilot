@@ -119,9 +119,9 @@ def main() -> int:
         print(f"Messaggio WhatsApp inviato con successo. SID: {sid}")
         return 0
     except (WeatherFetchError, WhatsAppSendError) as exc:
-        print(str(exc), file=sys.stderr)
+        print(f"Errore operativo agente meteo: {exc}", file=sys.stderr)
     except Exception as exc:
-        print(f"Errore: {exc}", file=sys.stderr)
+        print(f"Errore inatteso durante l'esecuzione dell'agente meteo: {exc}", file=sys.stderr)
     return 1
 
 
