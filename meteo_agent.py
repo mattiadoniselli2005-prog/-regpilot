@@ -5,6 +5,7 @@ from datetime import datetime
 
 import requests
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
@@ -90,7 +91,18 @@ def main() -> int:
         print(f"Messaggio WhatsApp inviato con successo. SID: {sid}")
         return 0
     except requests.HTTPError as exc:
-        print(f"Errore HTTP durante chiamata meteo: {exc}", file=sys.stderr)
+        response = exc.response
+        status_code = response.status_code if response is not None else "N/A"
+        response_text = response.text if response is not None else "N/A"
+        print(
+            f"Errore HTTP durante chiamata meteo: status={status_code}, body={response_text}",
+            file=sys.stderr,
+        )
+    except TwilioRestException as exc:
+        print(
+            f"Errore Twilio durante invio WhatsApp: code={exc.code}, status={exc.status}, msg={exc.msg}",
+            file=sys.stderr,
+        )
     except Exception as exc:
         print(f"Errore: {exc}", file=sys.stderr)
     return 1

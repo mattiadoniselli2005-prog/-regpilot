@@ -65,7 +65,7 @@ Se vuoi le 08:00 italiane, modifica il cron in base a ora legale/solare.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install requests twilio
+pip install -r requirements.txt
 
 export OPENWEATHER_API_KEY="..."
 export TWILIO_ACCOUNT_SID="..."
@@ -81,4 +81,5 @@ python meteo_agent.py
 ## 7) File principali
 
 - `meteo_agent.py`: logica dell'agente
+- `requirements.txt`: dipendenze Python pin-nate
 - `.github/workflows/meteo_agent.yml`: schedulazione automatica su GitHub Actions
