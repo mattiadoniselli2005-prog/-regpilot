@@ -59,16 +59,20 @@ def format_message(weather: dict, city_label: str) -> str:
     humidity = main.get("humidity")
     condition = weather_info.get("description", "condizioni non disponibili")
     wind_speed = wind.get("speed")
+    temp_display = f"{temp}°C" if temp is not None else "N/D"
+    feels_like_display = f"{feels_like}°C" if feels_like is not None else "N/D"
+    humidity_display = f"{humidity}%" if humidity is not None else "N/D"
+    wind_speed_display = f"{wind_speed} m/s" if wind_speed is not None else "N/D"
 
     today = datetime.now().strftime("%d/%m/%Y")
 
     return (
         f"🌞 Buongiorno! Ecco il meteo di oggi ({today}) per {city_label}:\n\n"
-        f"🌡️ Temperatura: {temp}°C\n"
-        f"🤗 Percepita: {feels_like}°C\n"
+        f"🌡️ Temperatura: {temp_display}\n"
+        f"🤗 Percepita: {feels_like_display}\n"
         f"☁️ Condizioni: {condition}\n"
-        f"💧 Umidità: {humidity}%\n"
-        f"💨 Vento: {wind_speed} m/s\n\n"
+        f"💧 Umidità: {humidity_display}\n"
+        f"💨 Vento: {wind_speed_display}\n\n"
         "Buona giornata! 🚀"
     )
 
